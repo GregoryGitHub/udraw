@@ -1,25 +1,38 @@
 # uDraw
 
-Aplicação **desktop offline** de desenho livre — o Excalidraw rodando localmente,
-com arquivos no seu disco e um conversor de diagramas Mermaid embutido.
+[![Licença: MIT](https://img.shields.io/badge/licença-MIT-blue.svg)](LICENSE)
+[![Feito com Tauri](https://img.shields.io/badge/feito%20com-Tauri-24C8DB)](https://tauri.app)
 
-- **Desenho completo.** Usa o pacote oficial `@excalidraw/excalidraw` (MIT), então
-  todas as ferramentas estão disponíveis desde o primeiro dia: formas, texto,
-  setas com vínculo, mão livre, imagens, frames, bibliotecas, undo/redo.
-- **Offline de verdade.** As fontes são servidas do próprio app; nenhuma
-  requisição sai para a rede. A CSP do Tauri não permite nenhuma origem externa.
-- **Arquivos locais.** `.udraw` é a extensão nativa e o conteúdo é JSON idêntico ao
-  do Excalidraw, então o mesmo arquivo abre em `excalidraw.com` e vice-versa.
-- **Diagramas Mermaid.** Escreva o código, veja o preview e insira — o diagrama
-  vira elementos nativos do canvas, editáveis com qualquer ferramenta. A conversão
-  é única: o código não fica guardado.
+Um quadro branco Excalidraw, só que rodando no seu computador em vez do navegador — com arquivos de verdade salvos no seu disco, funcionando sem internet, e uma forma de transformar diagramas Mermaid em desenho editável.
 
-## Requisitos
+![Tela do uDraw mostrando um desenho com formas e um fluxograma inserido a partir de Mermaid](docs/screenshot.png)
 
-Node 20+, Rust 1.77+ e as dependências de build do Tauri para a sua plataforma
-(no Windows, o WebView2 já vem com o sistema).
+## Por que isso existe
+
+O [Excalidraw](https://excalidraw.com) é, de longe, a melhor ferramenta de desenho à mão livre que existe hoje — mas ele é feito para o navegador: os desenhos vivem no `localStorage` da aba, e "salvar" normalmente significa exportar um `.excalidraw` manualmente. Eu queria a mesma experiência de desenho, só que como um programa de verdade: com `Ctrl+S`, arquivos no Explorer, funcionando num avião sem wifi. E já que ia construir isso, aproveitei para resolver outro incômodo — poder escrever um diagrama em Mermaid e ter ele virar formas normais do Excalidraw, editáveis com as mesmas ferramentas de qualquer outro desenho, em vez de ficar preso numa imagem estática.
+
+O uDraw é isso: o motor de desenho do Excalidraw, embutido como está (mesmas ferramentas, mesmo visual, mesmos atalhos), dentro de um app desktop feito com [Tauri](https://tauri.app), com persistência local e inserção de Mermaid por cima.
+
+Este é um projeto pessoal e independente — não é afiliado, endossado nem mantido pela equipe do Excalidraw ou do Mermaid. Ele só existe porque os dois são open source.
+
+## O que ele faz
+
+- **É o Excalidraw de verdade.** Usa o pacote oficial `@excalidraw/excalidraw`, então todas as ferramentas estão lá desde o primeiro dia: formas, texto, setas com vínculo, mão livre, imagens, frames, bibliotecas, undo/redo.
+- **Funciona sem internet.** As fontes são servidas do próprio app; nenhuma requisição sai para a rede. A política de segurança do Tauri não permite nenhuma origem externa.
+- **Salva arquivos de verdade.** `.udraw` é a extensão nativa, mas o conteúdo é o mesmo JSON do Excalidraw — o mesmo arquivo abre em `excalidraw.com` e vice-versa. Gravação atômica, autosave com recuperação após queda, lista de recentes, abrir com duplo-clique no Explorer.
+- **Converte diagramas Mermaid em desenho de verdade.** Escreva o código, veja o preview, insira — o diagrama vira elementos nativos do canvas, editáveis com qualquer ferramenta. A conversão é única: depois de inserido, é só desenho comum, sem vínculo escondido com o código.
+- **Grade opcional**, com um botão dedicado ao lado do zoom.
+- **Exporta PNG e SVG**, com opção de copiar direto para a área de transferência.
+
+## Instalação
+
+A forma mais simples é baixar o instalador pronto na [página de releases](../../releases/latest) — `uDraw_x.y.z_x64-setup.exe` (NSIS) ou o `.msi`, ambos para Windows. Nenhum dos dois exige nada além do WebView2, que já vem com o Windows 10/11.
+
+Se preferir compilar você mesmo, ou estiver noutra plataforma, veja [Desenvolvimento](#desenvolvimento) abaixo.
 
 ## Desenvolvimento
+
+Requisitos: Node 20+, Rust 1.77+ e as dependências de build do Tauri para a sua plataforma (no Windows, o WebView2 já vem com o sistema).
 
 ```bash
 npm install          # também copia as fontes do Excalidraw para public/fonts
@@ -151,3 +164,17 @@ O smoke test verifica, entre outras coisas: que o canvas monta, que nenhuma
 requisição externa é feita, que um flowchart vira formas com setas vinculadas,
 que um `pie` cai para imagem e é sinalizado, que o round-trip de `.udraw`
 preserva ids e agrupamento, e que a exportação grava um PNG válido.
+
+## Licença
+
+MIT — veja [LICENSE](LICENSE). É a mesma licença de todas as bibliotecas em que
+este projeto se apoia diretamente: `@excalidraw/excalidraw`,
+`@excalidraw/mermaid-to-excalidraw`, React e o próprio Tauri (que é MIT/Apache-2.0
+dual, e aqui usado sob os termos MIT).
+
+## Créditos
+
+O uDraw não existiria sem o trabalho de duas equipes:
+
+- **[Excalidraw](https://github.com/excalidraw/excalidraw)** — o motor de desenho inteiro (canvas, formas, texto, o visual à mão livre) é o pacote deles, usado como está.
+- **[Mermaid](https://github.com/mermaid-js/mermaid)** e o conversor **[mermaid-to-excalidraw](https://github.com/excalidraw/mermaid-to-excalidraw)** — tornam a inserção de diagramas possível.
