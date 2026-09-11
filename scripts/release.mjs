@@ -13,7 +13,8 @@
  * drift apart silently.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -47,13 +48,25 @@ function fail(message, hint) {
   process.exit(1);
 }
 
+/**
+ * Commands that are .cmd/.bat shims on Windows, not real executables - Node's
+ * spawn can only find and run these through a shell. Everything else (gh, git,
+ * cargo) is a real .exe: run it directly, because that path is what makes Node
+ * escape arguments correctly. `shell: true` on Windows does NOT escape argv -
+ * it just concatenates the array with spaces and lets cmd.exe reparse it, which
+ * mangles anything containing a newline, backtick or em dash (exactly what a
+ * markdown release-notes string is full of).
+ */
+const WINDOWS_SHELL_COMMANDS = new Set(["npm", "npx", "yarn", "pnpm"]);
+
 /** Runs a command, streaming its output. Returns stdout when captured. */
 function run(command, args, { capture = false, cwd = ROOT, allowFail = false } = {}) {
+  const needsShell = process.platform === "win32" && WINDOWS_SHELL_COMMANDS.has(command);
   const result = spawnSync(command, args, {
     cwd,
     encoding: "utf8",
     stdio: capture ? "pipe" : "inherit",
-    shell: process.platform === "win32",
+    shell: needsShell,
   });
   if (result.error) {
     if (allowFail) return null;
@@ -208,6 +221,17 @@ if (!notes) {
 
 // ---------------------------------------------------------------------- publish
 
+// Notes go through a temp file and --notes-file rather than --notes on the
+// command line: gh itself recommends this for anything beyond a one-liner, and
+// it sidesteps shell-quoting and command-line-length limits entirely, on any
+// platform, regardless of what markdown ends up in there.
+let notesFilePath = null;
+if (!releaseExists) {
+  const tmpDir = mkdtempSync(join(tmpdir(), "udraw-release-"));
+  notesFilePath = join(tmpDir, "notes.md");
+  writeFileSync(notesFilePath, notes, "utf8");
+}
+
 const releaseArgs = releaseExists
   ? ["release", "upload", tag, ...artifacts.map((a) => a.path), "--clobber"]
   : [
@@ -217,8 +241,8 @@ const releaseArgs = releaseExists
       ...artifacts.map((a) => a.path),
       "--title",
       `uDraw ${version}`,
-      "--notes",
-      notes,
+      "--notes-file",
+      notesFilePath,
       ...(options.draft ? ["--draft"] : []),
       ...(options.prerelease ? ["--prerelease"] : []),
       ...(tagExists ? [] : ["--target", run("git", ["rev-parse", "HEAD"], { capture: true })]),
@@ -226,13 +250,16 @@ const releaseArgs = releaseExists
 
 if (options.dryRun) {
   step("--dry-run: nada será publicado");
-  log(`  gh ${releaseArgs.map((a) => (a.includes("\n") ? "<notas>" : a)).join(" ")}`);
+  log(`  gh ${releaseArgs.join(" ")}`);
+  if (notesFilePath) log(`  (notas em ${notesFilePath}:)\n${notes.replace(/^/gm, "    ")}`);
   log("\nPré-requisitos OK. Rode sem --dry-run para publicar de verdade.");
+  if (notesFilePath) rmSync(dirname(notesFilePath), { recursive: true, force: true });
   process.exit(0);
 }
 
 step(`${releaseExists ? "Enviando arquivos para" : "Criando"} o release ${tag}`);
 run("gh", releaseArgs);
+if (notesFilePath) rmSync(dirname(notesFilePath), { recursive: true, force: true });
 
 const url = run("gh", ["release", "view", tag, "--json", "url", "--jq", ".url"], {
   capture: true,
