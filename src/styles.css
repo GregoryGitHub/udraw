@@ -1,0 +1,250 @@
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.udraw-canvas {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Modals sit above Excalidraw's own layers (its top layer uses z-index 5). */
+.udraw-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 45%);
+}
+
+.udraw-dialog,
+.udraw-mermaid {
+  background: var(--udraw-surface, #fff);
+  color: var(--udraw-text, #1b1b1f);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 30%);
+  padding: 24px;
+  max-width: 100%;
+}
+
+.udraw-dialog {
+  width: min(440px, 100%);
+}
+
+.udraw-dialog h2,
+.udraw-mermaid h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.udraw-dialog p,
+.udraw-mermaid p {
+  margin: 0 0 16px;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.udraw-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.udraw-dialog__actions button {
+  border: 1px solid #d6d6dd;
+  background: #fff;
+  color: inherit;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.udraw-dialog__actions button:hover:not(:disabled) {
+  background: #f2f2f6;
+}
+
+.udraw-dialog__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.udraw-dialog__actions .udraw-dialog__primary {
+  background: #6965db;
+  border-color: #6965db;
+  color: #fff;
+}
+
+.udraw-dialog__actions .udraw-dialog__primary:hover:not(:disabled) {
+  background: #5b57d1;
+}
+
+.udraw-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.udraw-field select {
+  font: inherit;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #d6d6dd;
+}
+
+.udraw-field--check {
+  gap: 8px;
+}
+
+/* Mermaid dialog */
+.udraw-mermaid {
+  width: min(1040px, 100%);
+  height: min(680px, 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.udraw-mermaid__header p {
+  color: #5b5b66;
+  margin-bottom: 12px;
+}
+
+.udraw-mermaid__templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.udraw-mermaid__templates button {
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid #d6d6dd;
+  background: #f7f7fa;
+  cursor: pointer;
+}
+
+.udraw-mermaid__templates button:hover {
+  background: #ececf3;
+}
+
+.udraw-mermaid__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.udraw-mermaid__code {
+  font-family: "Cascadia Code", ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: none;
+  border: 1px solid #d6d6dd;
+  border-radius: 8px;
+  padding: 12px;
+  tab-size: 2;
+  background: #fbfbfd;
+  color: inherit;
+}
+
+.udraw-mermaid__preview {
+  border: 1px solid #d6d6dd;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(45deg, #f4f4f8 25%, transparent 25%, transparent 75%, #f4f4f8 75%),
+    linear-gradient(45deg, #f4f4f8 25%, transparent 25%, transparent 75%, #f4f4f8 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+.udraw-mermaid__warning,
+.udraw-mermaid__error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.udraw-mermaid__warning {
+  background: #fff6e5;
+  border: 1px solid #f5d9a8;
+  color: #7a4f00;
+}
+
+.udraw-mermaid__error {
+  background: #fdecec;
+  border: 1px solid #f3bcbc;
+  color: #9b1c1c;
+  white-space: pre-wrap;
+}
+
+/*
+ * Grid toggle. Lives inside Excalidraw's footer row via a portal, so it reads
+ * Excalidraw's own theme variables and flips with light/dark automatically.
+ */
+.udraw-grid-toggle {
+  display: flex;
+  align-items: center;
+  margin-inline-start: 10px;
+}
+
+.udraw-grid-toggle--detached {
+  position: fixed;
+  bottom: 16px;
+  left: 248px;
+  z-index: 4;
+}
+
+.udraw-grid-toggle__button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--border-radius-lg, 8px);
+  background: var(--color-surface-low, #ececf4);
+  color: var(--text-primary-color, #1b1b1f);
+}
+
+.udraw-grid-toggle__button:hover {
+  background: var(--button-hover-bg, #f1f0ff);
+}
+
+/*
+ * Excalidraw's own selected-control pair, which carries proper contrast in both
+ * themes (light: #e0dfff on #030064, dark: #403e6a on #e0dfff).
+ */
+.udraw-grid-toggle__button.is-active {
+  background: var(--color-surface-primary-container, #e0dfff);
+  color: var(--color-on-primary-container, #030064);
+}
+
+.udraw-grid-toggle__button:focus-visible {
+  outline: 2px solid var(--color-primary, #6965db);
+  outline-offset: 1px;
+}
