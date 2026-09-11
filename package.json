@@ -16,7 +16,7 @@
     "release": "node scripts/release.mjs"
   },
   "dependencies": {
-    "@excalidraw/excalidraw": "^0.18.1",
+    "@excalidraw/excalidraw": "0.18.0-afa3a65",
     "@excalidraw/mermaid-to-excalidraw": "^2.2.2",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-clipboard-manager": "^2",

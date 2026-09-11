@@ -18,6 +18,7 @@ Este é um projeto pessoal e independente — não é afiliado, endossado nem ma
 ## O que ele faz
 
 - **É o Excalidraw de verdade.** Usa o pacote oficial `@excalidraw/excalidraw`, então todas as ferramentas estão lá desde o primeiro dia: formas, texto, setas com vínculo, mão livre, imagens, frames, bibliotecas, undo/redo.
+- **Desenha à mão e vira forma.** A ferramenta "autoshape" (aninhada junto do lápis, na barra de ferramentas) reconhece um retângulo, círculo, diamante, linha ou seta desenhados à mão livre e troca o rabisco pela forma geométrica limpa correspondente — sem precisar soltar o mouse e escolher a ferramenta certa.
 - **Funciona sem internet.** As fontes são servidas do próprio app; nenhuma requisição sai para a rede. A política de segurança do Tauri não permite nenhuma origem externa.
 - **Salva arquivos de verdade.** `.udraw` é a extensão nativa, mas o conteúdo é o mesmo JSON do Excalidraw — o mesmo arquivo abre em `excalidraw.com` e vice-versa. Gravação atômica, autosave com recuperação após queda, lista de recentes, abrir com duplo-clique no Explorer.
 - **Converte diagramas Mermaid em desenho de verdade.** Escreva o código, veja o preview, insira — o diagrama vira elementos nativos do canvas, editáveis com qualquer ferramenta. A conversão é única: depois de inserido, é só desenho comum, sem vínculo escondido com o código.
@@ -47,6 +48,24 @@ npm run tauri dev    # sobe o app desktop
 | `npm run smoke` | Testes de integração num Chromium real (exige `npm run dev` rodando) |
 | `npm run build` | Typecheck + bundle do frontend |
 | `npm run release` | Compila e publica os instaladores como release no GitHub |
+
+### Sobre a versão do Excalidraw
+
+`@excalidraw/excalidraw` está fixado (sem `^`) numa build **canary** —
+`0.18.0-afa3a65`, publicada direto do branch `master` deles, não numa versão
+estável — porque é a única forma de ter o "autoshape" hoje: a feature foi
+mesclada lá em julho e ainda não saiu numa versão estável no npm. Além do
+autoshape, essa build carrega meses de outras mudanças do master, incluindo
+breaking changes reais na API que este projeto já adaptou (`excalidrawAPI` →
+`onExcalidrawAPI`, a função `restore()` foi removida em favor de
+`restoreElements` + `restoreAppState`, `scrollToContent` saiu do
+`ExcalidrawImperativeAPI` em favor de `zoomToFitBounds`, e
+`MainMenu.DefaultItems.ToggleTheme` passou a exigir a prop
+`allowSystemTheme`) — quem for atualizar essa dependência deve esperar mais
+quebras do mesmo tipo, não só a troca de versão.
+
+Assim que o Excalidraw publicar uma versão estável com o autoshape incluído,
+o caminho é trocar para ela e voltar a usar `^` normalmente.
 
 ## Estrutura
 

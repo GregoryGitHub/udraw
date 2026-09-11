@@ -76,7 +76,9 @@ export function MainMenuBar({ recents, onCommand, onOpenRecent }: Props) {
       ) : null}
 
       <MainMenu.Separator />
-      <MainMenu.DefaultItems.ToggleTheme />
+      {/* We don't track a separate "system theme" preference of our own, so this
+          keeps the previous light/dark-only toggle behavior. */}
+      <MainMenu.DefaultItems.ToggleTheme allowSystemTheme={false} />
       <MainMenu.DefaultItems.ChangeCanvasBackground />
     </MainMenu>
   );

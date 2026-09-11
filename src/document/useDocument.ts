@@ -1,4 +1,9 @@
-import { CaptureUpdateAction, getSceneVersion } from "@excalidraw/excalidraw";
+import {
+  CaptureUpdateAction,
+  getCommonBounds,
+  getSceneVersion,
+  zoomToFitBounds,
+} from "@excalidraw/excalidraw";
 import type { RestoredDataState } from "@excalidraw/excalidraw/data/restore";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type {
@@ -138,9 +143,21 @@ export function useDocument({ api, confirmUnsaved, showError, confirmRecover }: 
       if (!api) {
         return;
       }
+      // scrollToContent was dropped from the imperative API; zoomToFitBounds
+      // is its replacement - it takes a bounding box rather than the element
+      // list, so the fit is folded into the same updateScene as the load
+      // instead of a separate post-commit call. Bounds come from the elements
+      // we already have in hand, not from what's on screen yet.
+      const fitAppState = restored.elements.length
+        ? zoomToFitBounds({
+            bounds: getCommonBounds(restored.elements),
+            appState: restored.appState as AppState,
+          }).appState
+        : null;
+
       api.updateScene({
         elements: restored.elements,
-        appState: restored.appState,
+        appState: fitAppState ? { ...restored.appState, ...fitAppState } : restored.appState,
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,
       });
       const files = Object.values(restored.files ?? {});
@@ -149,9 +166,6 @@ export function useDocument({ api, confirmUnsaved, showError, confirmRecover }: 
       }
       // A freshly opened document starts with a clean slate of undo history.
       api.history.clear();
-      if (restored.elements.length) {
-        api.scrollToContent(restored.elements, { fitToContent: true });
-      }
       setFilePath(path);
       filePathRef.current = path;
       await afterCommit();

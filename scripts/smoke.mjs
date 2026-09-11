@@ -305,7 +305,7 @@ try {
         ...api.getSceneElements(),
         { ...api.getSceneElements()[0], id: "edit_probe", x: 999, y: 999, groupIds: [] },
       ],
-      captureUpdate: "immediately",
+      captureUpdate: "IMMEDIATELY",
     });
     await settle();
     steps.dirtyAfterEdit = doc().dirty === true;
@@ -364,7 +364,7 @@ try {
     const box = button.getBoundingClientRect();
 
     // Start from a known state and a saved document.
-    api.updateScene({ appState: { gridModeEnabled: false }, captureUpdate: "never" });
+    api.updateScene({ appState: { gridModeEnabled: false }, captureUpdate: "NEVER" });
     await settle();
     await window.__UDRAW_DOC__.save();
     await settle();
@@ -385,13 +385,13 @@ try {
     };
 
     // Excalidraw's own grid toggle must be reflected back on the button.
-    api.updateScene({ appState: { gridModeEnabled: true }, captureUpdate: "never" });
+    api.updateScene({ appState: { gridModeEnabled: true }, captureUpdate: "NEVER" });
     await settle();
     const external = document
       .querySelector(".udraw-grid-toggle button")
       .getAttribute("aria-pressed");
 
-    api.updateScene({ appState: { gridModeEnabled: false }, captureUpdate: "never" });
+    api.updateScene({ appState: { gridModeEnabled: false }, captureUpdate: "NEVER" });
     await settle();
 
     return {
