@@ -348,7 +348,8 @@ export function useDocument({ api, confirmUnsaved, showError, confirmRecover }: 
     bootstrapped.current = true;
 
     void (async () => {
-      await syncRecents();
+      const recentsList = await backend.listRecents().catch(() => []);
+      await syncRecents(recentsList);
 
       const startup = await backend.startupFile().catch(() => null);
       if (startup) {
@@ -357,27 +358,42 @@ export function useDocument({ api, confirmUnsaved, showError, confirmRecover }: 
       }
 
       const recovery = await backend.recoveryRead().catch(() => null);
-      if (!recovery) {
+      if (recovery) {
+        const name = recovery.source_path ? basename(recovery.source_path) : DEFAULT_FILENAME;
+        if (await confirmRecover(name, recovery.saved_at)) {
+          try {
+            await applyScene(deserializeScene(recovery.contents), recovery.source_path);
+            // A recovered draft is by definition unsaved work.
+            setDirty(true);
+            return;
+          } catch {
+            await showError(
+              "Recuperação falhou",
+              "O rascunho de recuperação estava corrompido e foi descartado.",
+            );
+            await backend.recoveryClear().catch(() => undefined);
+          }
+        } else {
+          await backend.recoveryClear().catch(() => undefined);
+        }
+      }
+
+      // No file passed on the command line and no crash draft to recover -
+      // reopen whatever was last worked on instead of starting blank.
+      const lastPath = recentsList[0]?.path;
+      if (lastPath) {
+        await loadFromPath(lastPath);
         return;
       }
-      const name = recovery.source_path ? basename(recovery.source_path) : DEFAULT_FILENAME;
-      if (!(await confirmRecover(name, recovery.saved_at))) {
-        await backend.recoveryClear().catch(() => undefined);
-        return;
-      }
-      try {
-        await applyScene(deserializeScene(recovery.contents), recovery.source_path);
-        // A recovered draft is by definition unsaved work.
-        setDirty(true);
-      } catch {
-        await showError(
-          "Recuperação falhou",
-          "O rascunho de recuperação estava corrompido e foi descartado.",
-        );
-        await backend.recoveryClear().catch(() => undefined);
-      }
+
+      // Nothing to load. Excalidraw fires onChange once on mount with the
+      // empty scene; without this the dirty baseline stays at its initial ""
+      // and that first callback gets mistaken for an edit, so a blank canvas
+      // would immediately read as unsaved.
+      await afterCommit();
+      markSaved(api.getSceneElements(), api.getAppState());
     })();
-  }, [api, applyScene, confirmRecover, loadFromPath, showError, syncRecents]);
+  }, [api, applyScene, confirmRecover, loadFromPath, markSaved, showError, syncRecents]);
 
   return {
     filePath,
