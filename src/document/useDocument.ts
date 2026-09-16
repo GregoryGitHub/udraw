@@ -148,10 +148,16 @@ export function useDocument({ api, confirmUnsaved, showError, confirmRecover }: 
       // list, so the fit is folded into the same updateScene as the load
       // instead of a separate post-commit call. Bounds come from the elements
       // we already have in hand, not from what's on screen yet.
+      //
+      // A saved file's appState never carries width/height - those are
+      // runtime container dimensions Excalidraw deliberately excludes from
+      // persistence - so zoomToFitBounds needs the live appState (already
+      // populated from the mounted canvas) for those, with the file's
+      // appState layered on top for everything it does persist.
       const fitAppState = restored.elements.length
         ? zoomToFitBounds({
             bounds: getCommonBounds(restored.elements),
-            appState: restored.appState as AppState,
+            appState: { ...api.getAppState(), ...restored.appState },
           }).appState
         : null;
 
